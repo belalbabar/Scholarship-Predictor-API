@@ -2,28 +2,52 @@ import joblib
 import numpy as np
 from fastapi import FastAPI
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 rf_model = joblib.load("scholarship_model.pkl")
 scaler = joblib.load("scaler.pkl")
-app = FastAPI()
 
 class StudentData(BaseModel):
-    GRE_Score : int
-    TOEFL_Score : int
-    University_Rating : int
-    Statement_of_Purpose : float
-    Letter_of_recommendation : float
-    CGPA : float
-    Research : int
+    GRE_Score: int
+    TOEFL_Score: int
+    University_Rating: int
+    Statement_of_Purpose: float
+    Letter_of_recommendation: float
+    CGPA: float
+    Research: int
 
 @app.post("/predict_scholarship")
-def predict(data:StudentData):
-    input_data = np.array([[data.GRE_Score,data.TOEFL_Score,data.University_Rating,data.Statement_of_Purpose,data.Letter_of_recommendation,
-                            data.CGPA,data.Research]])
+def predict(data: StudentData):
+    input_data = np.array([[ 
+        data.GRE_Score,
+        data.TOEFL_Score,
+        data.University_Rating,
+        data.Statement_of_Purpose,
+        data.Letter_of_recommendation,
+        data.CGPA,
+        data.Research
+    ]])
+    
     input_scaled = scaler.transform(input_data)
     prediction = rf_model.predict(input_scaled)[0]
     probability = rf_model.predict_proba(input_scaled)[0][1]
-    return {"Scholarship": int(prediction), "Probability": round(probability, 2)}
+
+    return {
+        "Scholarship": int(prediction),
+        "Probability": round(probability, 2)
+    }
+
 @app.get("/")
 def home():
-    return{'message':"Scholarship Prediction API is running"}
+    return {"message": "Scholarship Prediction API is running"}
