@@ -11,14 +11,14 @@ class StudentData(BaseModel):
     GRE_Score : int
     TOEFL_Score : int
     University_Rating : int
-    SOP : float
-    LOR : float
+    Statement_of_Purpose : float
+    Letter_of_recommendation : float
     CGPA : float
     Research : int
 
 @app.post("/predict_scholarship")
 def predict(data:StudentData):
-    input_data = np.array([[data.GRE_Score,data.TOEFL_Score,data.University_Rating,data.SOP,data.LOR,
+    input_data = np.array([[data.GRE_Score,data.TOEFL_Score,data.University_Rating,data.Statement_of_Purpose,data.Letter_of_recommendation,
                             data.CGPA,data.Research]])
     input_scaled = scaler.transform(input_data)
     prediction = rf_model.predict(input_scaled)[0]
